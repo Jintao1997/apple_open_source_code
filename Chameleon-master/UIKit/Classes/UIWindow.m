@@ -41,6 +41,7 @@
 #import "UIKitView.h"
 #import <AppKit/NSCursor.h>
 #import <QuartzCore/QuartzCore.h>
+#import "UITableView.h"
 
 const UIWindowLevel UIWindowLevelNormal = 0;
 const UIWindowLevel UIWindowLevelStatusBar = 1000;

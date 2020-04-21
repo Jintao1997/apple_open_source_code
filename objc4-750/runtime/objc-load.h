@@ -49,7 +49,7 @@ OBJC_EXPORT int objc_loadModule (
 ) OBJC2_UNAVAILABLE;
 OBJC_EXPORT long objc_unloadModules(
 	void * _Nullable errorStream,				/* input (optional) */
-	void (* _Nullable unloadCallback)(Class _Nullable, Category _Nullable)		/* input (optional) */
+	void (* _Nullable unloadCallback)(Class _Nullable, category_t _Nullable)		/* input (optional) */
 ) OBJC2_UNAVAILABLE;
 
 #endif /* _OBJC_LOAD_H_ */

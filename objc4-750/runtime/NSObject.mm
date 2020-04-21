@@ -921,7 +921,7 @@ class AutoreleasePoolPage
 
     static inline id *autoreleaseFast(id obj)
     {
-        AutoreleasePoolPage *page = hotPage();
+        AutoreleasePoolPage *page =  hotPage();
         if (page && !page->full()) {
             return page->add(obj);
         } else if (page) {

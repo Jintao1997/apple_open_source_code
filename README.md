@@ -5,3 +5,5 @@ Collections of Apple Open Source Code
 - runtime
 - GCD
 - Runloop
+- Dyld
+- Malloc

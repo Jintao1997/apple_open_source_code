@@ -1068,6 +1068,7 @@ _dispatch_continuation_pop(dispatch_object_t dou)
 
 	_dispatch_trace_continuation_pop(_dispatch_queue_get_current(), dou);
 	if (DISPATCH_OBJ_IS_VTABLE(dou._do)) {
+		// Tanner Jin: 调度队列
 		return _dispatch_queue_invoke(dou._dq);
 	}
 
@@ -1148,6 +1149,7 @@ _dispatch_async_f_redirect_invoke(void *_ctxt)
 	dispatch_queue_t old_dq, dq = dc->dc_data[0], rq;
 
 	old_dq = _dispatch_thread_getspecific(dispatch_queue_key);
+	// Tanner Jin:
 	_dispatch_thread_setspecific(dispatch_queue_key, dq);
 	_dispatch_continuation_pop(other_dc);
 	_dispatch_thread_setspecific(dispatch_queue_key, old_dq);
@@ -1833,6 +1835,7 @@ _dispatch_wakeup(dispatch_object_t dou)
 	if (slowpath(DISPATCH_OBJECT_SUSPENDED(dou._do))) {
 		return NULL;
 	}
+	// Tanner Jin: (dq->do_targetq)dx_probe调用 do_vtable->_dispatch_queue_wakeup_global 创建队列线程
 	if (!dx_probe(dou._do) && !dou._dq->dq_items_tail) {
 		return NULL;
 	}
@@ -1882,6 +1885,7 @@ _dispatch_queue_wakeup_main(void)
 }
 #endif
 
+// Tanner Jin: entry
 static bool
 _dispatch_queue_wakeup_global(dispatch_queue_t dq)
 {
@@ -1962,6 +1966,7 @@ _dispatch_queue_invoke(dispatch_queue_t dq)
 			fastpath(dispatch_atomic_cmpxchg2o(dq, dq_running, 0, 1))) {
 		dispatch_atomic_acquire_barrier();
 		dispatch_queue_t otq = dq->do_targetq, tq = NULL;
+		// Tanner Jin: 调度队列
 		_dispatch_queue_drain(dq);
 		if (dq->do_vtable->do_invoke) {
 			// Assume that object invoke checks it is executing on correct queue
@@ -2255,6 +2260,7 @@ _dispatch_worker_thread2(void *context)
 	uint64_t start = _dispatch_absolute_time();
 #endif
 	while ((item = fastpath(_dispatch_queue_concurrent_drain_one(dq)))) {
+		// Tanner Jin: 调度任务队列
 		_dispatch_continuation_pop(item);
 	}
 #if DISPATCH_PERF_MON
