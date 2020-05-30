@@ -408,7 +408,7 @@ void ImageLoader::addDynamicInterposingTuples(const struct dyld_interpose_tuple 
 	}
 }
 
-
+// Tanner: 3. 链接加载依赖库
 void ImageLoader::link(const LinkContext& context, bool forceLazysBound, bool preflightOnly, bool neverUnload, const RPathChain& loaderRPaths, const char* imagePath)
 {
 	//dyld::log("ImageLoader::link(%s) refCount=%d, neverUnload=%d\n", imagePath, fDlopenReferenceCount, fNeverUnload);
@@ -628,6 +628,7 @@ void ImageLoader::recursiveLoadLibraries(const LinkContext& context, bool prefli
 #endif
 			try {
 				unsigned cacheIndex;
+				// Tanner: 加载依赖库 (loadLibrary -> libraryLocator -> open)
 				dependentLib = context.loadLibrary(requiredLibInfo.name, true, this->getPath(), &thisRPaths, cacheIndex);
 				if ( dependentLib == this ) {
 					// found circular reference, perhaps DYLD_LIBARY_PATH is causing this rdar://problem/3684168 

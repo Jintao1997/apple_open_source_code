@@ -120,7 +120,7 @@ internal func _CFSwiftGetTypeID(_ cf: AnyObject) -> CFTypeID {
 
 
 
-internal func _CFSwiftCopyWithZone(_ cf: CFTypeRef, _ zone: CFTypeRef?) -> Unmanaged<CFTypeRef> {
+internal func 3 -> Unmanaged<CFTypeRef> {
     return Unmanaged<CFTypeRef>.passRetained((cf as! NSObject).copy() as! NSObject)
 }
 

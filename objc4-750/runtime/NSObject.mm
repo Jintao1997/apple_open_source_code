@@ -1965,7 +1965,7 @@ void arr_init(void)
 #endif
 
 
-@implementation NSObject
+@implementation
 
 + (void)load {
 }

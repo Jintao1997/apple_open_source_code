@@ -2036,6 +2036,7 @@ _dispatch_queue_drain(dispatch_queue_t dq)
 				_dispatch_continuation_pop(dc);
 				_dispatch_workitem_inc();
 			} else if (!DISPATCH_OBJ_IS_VTABLE(dc) &&
+					   // Tanner Jin
 					(long)dc->do_vtable & DISPATCH_OBJ_BARRIER_BIT) {
 				if (dq->dq_running > 1) {
 					goto out;
@@ -2043,6 +2044,7 @@ _dispatch_queue_drain(dispatch_queue_t dq)
 				_dispatch_continuation_pop(dc);
 				_dispatch_workitem_inc();
 			} else {
+				// barrier singal
 				_dispatch_continuation_redirect(dq, dc);
 			}
 		} while ((dc = next_dc));
@@ -2232,6 +2234,7 @@ out:
 
 // 6618342 Contact the team that owns the Instrument DTrace probe before
 //         renaming this symbol
+// Tanner Jin: 真正执行的地方
 static void
 _dispatch_worker_thread2(void *context)
 {
@@ -2260,7 +2263,7 @@ _dispatch_worker_thread2(void *context)
 	uint64_t start = _dispatch_absolute_time();
 #endif
 	while ((item = fastpath(_dispatch_queue_concurrent_drain_one(dq)))) {
-		// Tanner Jin: 调度任务队列
+		// Tanner Jin: 调度任务队列; 执行任务
 		_dispatch_continuation_pop(item);
 	}
 #if DISPATCH_PERF_MON

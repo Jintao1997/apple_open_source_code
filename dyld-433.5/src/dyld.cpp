@@ -1066,7 +1066,7 @@ static void notifyBatchPartial(dyld_image_states state, bool orLater, dyld_image
 #if SUPPORT_ACCELERATE_TABLES
 		if ( sAllCacheImagesProxy != NULL ) {
 			unsigned cacheCount = sAllCacheImagesProxy->appendImagesToNotify(state, orLater, &infos[imageCount]);
-			// support _dyld_register_func_for_add_image()
+			// Tanner.Jin _dyld_register_func_for_add_image()
 			if ( state == dyld_image_state_bound ) {
 				for (ImageCallback callback : sAddImageCallbacks) {
 					for (unsigned i=0; i < cacheCount; ++i)
@@ -1452,11 +1452,12 @@ void initializeMainExecutable()
 	const size_t rootCount = sImageRoots.size();
 	if ( rootCount > 1 ) {
 		for(size_t i=1; i < rootCount; ++i) {
+			// Tanner: main executable 的依赖库 runInitializers
 			sImageRoots[i]->runInitializers(gLinkContext, initializerTimes[0]);
 		}
 	}
 	
-	// run initializers for main executable and everything it brings up 
+	// Tanner: run initializers for main executable and everything it brings up
 	sMainExecutable->runInitializers(gLinkContext, initializerTimes[0]);
 	
 	// register cxa_atexit() handler to run static terminators in all loaded images when this process exits
@@ -2962,7 +2963,7 @@ static bool isSimulatorBinary(const uint8_t* firstPages, const char* path)
 }
 #endif
 
-// map in file and instantiate an ImageLoader
+// Tanner: map in file and instantiate an ImageLoader
 static ImageLoader* loadPhase6(int fd, const struct stat& stat_buf, const char* path, const LoadContext& context)
 {
 	//dyld::log("%s(%s)\n", __func__ , path);
@@ -5856,7 +5857,7 @@ reloadAllImages:
 #endif
 
 		CRSetCrashLogMessage(sLoadingCrashMessage);
-		// instantiate ImageLoader for main executable
+		// Tanner: 1. main executable
 		sMainExecutable = instantiateFromLoadedImage(mainExecutableMH, mainExecutableSlide, sExecPath);
 		gLinkContext.mainExecutable = sMainExecutable;
 		gLinkContext.mainExecutableCodeSigned = hasCodeSignatureLoadCommand(mainExecutableMH);
@@ -5947,7 +5948,7 @@ reloadAllImages:
 				gProcessInfo->dyldPath = strdup(dyldPathBuffer);
 		}
 
-		// load any inserted libraries
+		// Tanner: 2. load any inserted libraries
 		if	( sEnv.DYLD_INSERT_LIBRARIES != NULL ) {
 			for (const char* const* lib = sEnv.DYLD_INSERT_LIBRARIES; *lib != NULL; ++lib) 
 				loadInsertedDylib(*lib);
@@ -5965,6 +5966,10 @@ reloadAllImages:
 			sMainExecutable->rebase(gLinkContext, -mainExecutableSlide);
 		}
 #endif
+		/* Tanner: 3. 链接(加载)main executable所有依赖库
+			3.1: 加载完，对依赖库递归进行Rebase, Bind操作
+	3.2: 对每个image在递归Bind后设置image状态为dyld_image_state_bound，此时_dyld_register_func_for_add_image注册的函数可以执行
+		 */
 		link(sMainExecutable, sEnv.DYLD_BIND_AT_LAUNCH, true, ImageLoader::RPathChain(NULL, NULL), -1);
 		sMainExecutable->setNeverUnloadRecursive();
 		if ( sMainExecutable->forceFlat() ) {
@@ -6034,6 +6039,7 @@ reloadAllImages:
 		gLinkContext.linkingMainExecutable = false;
 		
 		// <rdar://problem/12186933> do weak binding only after all inserted images linked
+		// Tanner: 4. weakBind
 		sMainExecutable->weakBind(gLinkContext);
 
 	#if DYLD_SHARED_CACHE_SUPPORT
@@ -6064,7 +6070,7 @@ reloadAllImages:
 		if ( ! gRunInitializersOldWay ) 
 			initializeMainExecutable(); 
 	#else
-		// run all initializers
+		// Tanner: 5. run all initializers(依赖库的objc’s load, 库的构造方法执行)
 		initializeMainExecutable(); 
 	#endif
 
