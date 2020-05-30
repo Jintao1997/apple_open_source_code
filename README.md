@@ -1,9 +1,11 @@
 # apple_open_source_code
 Collections of Apple Open Source Code
 
-- CoreFoundation
-- runtime
-- GCD
-- Runloop
-- Dyld
-- Malloc
+- foundation and corefoundation
+- objc
+- dyld
+- libmalloc
+- libdispatch
+- libpthread
+- CFCore
+- CFNetwork

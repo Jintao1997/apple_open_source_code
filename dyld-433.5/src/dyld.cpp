@@ -1066,7 +1066,7 @@ static void notifyBatchPartial(dyld_image_states state, bool orLater, dyld_image
 #if SUPPORT_ACCELERATE_TABLES
 		if ( sAllCacheImagesProxy != NULL ) {
 			unsigned cacheCount = sAllCacheImagesProxy->appendImagesToNotify(state, orLater, &infos[imageCount]);
-			// Tanner.Jin _dyld_register_func_for_add_image()
+			// Tanner: _dyld_register_func_for_add_image()
 			if ( state == dyld_image_state_bound ) {
 				for (ImageCallback callback : sAddImageCallbacks) {
 					for (unsigned i=0; i < cacheCount; ++i)
@@ -5983,6 +5983,7 @@ reloadAllImages:
 		if ( sInsertedDylibCount > 0 ) {
 			for(unsigned int i=0; i < sInsertedDylibCount; ++i) {
 				ImageLoader* image = sAllImages[i+1];
+				// Tanner: 3.1 链接(加载)inserted libraries所有依赖库
 				link(image, sEnv.DYLD_BIND_AT_LAUNCH, true, ImageLoader::RPathChain(NULL, NULL), -1);
 				image->setNeverUnloadRecursive();
 			}

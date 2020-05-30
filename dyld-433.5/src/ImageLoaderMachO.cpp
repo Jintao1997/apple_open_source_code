@@ -2258,7 +2258,7 @@ bool ImageLoaderMachO::doInitialization(const LinkContext& context)
 {
 	CRSetCrashLogMessage2(this->getPath());
 
-	// Tanner.Jin mach-o has -init and static initializers
+	// Tanner: mach-o has -init and static initializers
 	doImageInit(context);
 	doModInitFunctions(context);
 	

@@ -12,7 +12,7 @@
 		<key>all.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>3</integer>
+			<integer>0</integer>
 		</dict>
 		<key>dsc_extractor.xcscheme</key>
 		<dict>
@@ -22,7 +22,7 @@
 		<key>dsc_extractor.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>9</integer>
+			<integer>7</integer>
 		</dict>
 		<key>dyld.xcscheme</key>
 		<dict>
@@ -32,7 +32,7 @@
 		<key>dyld.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
 		</dict>
 		<key>dyld_shared_cache_builder.xcscheme</key>
 		<dict>
@@ -52,7 +52,7 @@
 		<key>dyld_shared_cache_util.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>7</integer>
+			<integer>8</integer>
 		</dict>
 		<key>dyld_tests.xcscheme</key>
 		<dict>
@@ -72,7 +72,7 @@
 		<key>libdsc.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>5</integer>
+			<integer>6</integer>
 		</dict>
 		<key>libdyld.dylib.xcscheme</key>
 		<dict>
@@ -82,7 +82,7 @@
 		<key>libdyld.dylib.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>4</integer>
+			<integer>5</integer>
 		</dict>
 		<key>libdyld.xcscheme</key>
 		<dict>
@@ -92,7 +92,7 @@
 		<key>libdyld.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>3</integer>
 		</dict>
 		<key>multi_dyld_shared_cache_builder.xcscheme</key>
 		<dict>
@@ -102,7 +102,7 @@
 		<key>multi_dyld_shared_cache_builder.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>8</integer>
+			<integer>9</integer>
 		</dict>
 		<key>nocr.xcscheme</key>
 		<dict>
@@ -122,7 +122,7 @@
 		<key>update_dyld_shared_cache.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>2</integer>
 		</dict>
 		<key>update_dyld_shared_cache_tool.xcscheme</key>
 		<dict>
@@ -132,7 +132,7 @@
 		<key>update_dyld_shared_cache_tool.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>6</integer>
+			<integer>4</integer>
 		</dict>
 	</dict>
 </dict>
