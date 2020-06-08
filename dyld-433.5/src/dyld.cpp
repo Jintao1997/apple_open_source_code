@@ -668,6 +668,7 @@ static void notifyAddImageCallbacks(ImageLoader* image)
 	// use guard so that we cannot notify about the same image twice
 	if ( ! image->addFuncNotified() ) {
 		for (std::vector<ImageCallback>::iterator it=sAddImageCallbacks.begin(); it != sAddImageCallbacks.end(); it++)
+			// Tanner: 执行注册_dyld_register_func_for_add_image的方法
 			(*it)(image->machHeader(), image->getSlide());
 		image->setAddFuncNotified();
 	}
@@ -933,6 +934,7 @@ static void notifySingle(dyld_image_states state, const ImageLoader* image, Imag
 	}
 	if ( (state == dyld_image_state_dependents_initialized) && (sNotifyObjCInit != NULL) && image->notifyObjC() ) {
 		uint64_t t0 = mach_absolute_time();
+		// Tanner: 调用image的load方法
 		(*sNotifyObjCInit)(image->getRealPath(), image->machHeader());
 		uint64_t t1 = mach_absolute_time();
 		uint64_t t2 = mach_absolute_time();
@@ -1059,6 +1061,7 @@ static void notifyBatchPartial(dyld_image_states state, bool orLater, dyld_image
 					queueKernelNotification(*image, true, kernelInfos, kernelInfoCount);
 				// special case for add_image hook
 				if ( state == dyld_image_state_bound )
+					// Tanner: 通知调用 _dyld_register_func_for_add_image注册的方法
 					notifyAddImageCallbacks(image);
 			}
 			flushKernelNotifications(true, true, kernelInfos, kernelInfoCount);
@@ -1066,7 +1069,6 @@ static void notifyBatchPartial(dyld_image_states state, bool orLater, dyld_image
 #if SUPPORT_ACCELERATE_TABLES
 		if ( sAllCacheImagesProxy != NULL ) {
 			unsigned cacheCount = sAllCacheImagesProxy->appendImagesToNotify(state, orLater, &infos[imageCount]);
-			// Tanner: _dyld_register_func_for_add_image()
 			if ( state == dyld_image_state_bound ) {
 				for (ImageCallback callback : sAddImageCallbacks) {
 					for (unsigned i=0; i < cacheCount; ++i)
@@ -1457,7 +1459,7 @@ void initializeMainExecutable()
 		}
 	}
 	
-	// Tanner: run initializers for main executable and everything it brings up
+	// Tanner: run initializers for main executable
 	sMainExecutable->runInitializers(gLinkContext, initializerTimes[0]);
 	
 	// register cxa_atexit() handler to run static terminators in all loaded images when this process exits
@@ -5968,7 +5970,7 @@ reloadAllImages:
 #endif
 		/* Tanner: 3. 链接(加载)main executable所有依赖库
 			3.1: 加载完，对依赖库递归进行Rebase, Bind操作
-	3.2: 对每个image在递归Bind后设置image状态为dyld_image_state_bound，此时_dyld_register_func_for_add_image注册的函数可以执行
+			3.2: 对每个image在递归Bind后设置image状态为dyld_image_state_bound，此时_dyld_register_func_for_add_image注册的函数可以执行
 		 */
 		link(sMainExecutable, sEnv.DYLD_BIND_AT_LAUNCH, true, ImageLoader::RPathChain(NULL, NULL), -1);
 		sMainExecutable->setNeverUnloadRecursive();
@@ -5977,13 +5979,14 @@ reloadAllImages:
 			gLinkContext.prebindUsage = ImageLoader::kUseNoPrebinding;
 		}
 
+		// 3.3
 		// link any inserted libraries
 		// do this after linking main executable so that any dylibs pulled in by inserted 
 		// dylibs (e.g. libSystem) will not be in front of dylibs the program uses
 		if ( sInsertedDylibCount > 0 ) {
 			for(unsigned int i=0; i < sInsertedDylibCount; ++i) {
 				ImageLoader* image = sAllImages[i+1];
-				// Tanner: 3.1 链接(加载)inserted libraries所有依赖库
+				// Tanner: 3.3 链接(加载)inserted libraries所有依赖库
 				link(image, sEnv.DYLD_BIND_AT_LAUNCH, true, ImageLoader::RPathChain(NULL, NULL), -1);
 				image->setNeverUnloadRecursive();
 			}

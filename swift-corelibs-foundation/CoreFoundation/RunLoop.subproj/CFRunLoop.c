@@ -2690,6 +2690,7 @@ static void __CFRunLoopTimeout(void *arg) {
     // The interval is DISPATCH_TIME_FOREVER, so this won't fire again
 }
 
+// Tanner: Runloop
 /* rl, rlm are locked on entrance and exit */
 static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInterval seconds, Boolean stopAfterHandle, CFRunLoopModeRef previousMode) {
     uint64_t startTSR = mach_absolute_time();
@@ -2769,15 +2770,18 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
     __CFRunLoopUnsetIgnoreWakeUps(rl);
 
     if (rlm->_observerMask & kCFRunLoopBeforeTimers) {
+        // Tanner: BeforeTimers
         __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeTimers);
     }
     
     if (rlm->_observerMask & kCFRunLoopBeforeSources) {
+        // Tanner: BeforeSources
         __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeSources);
     }
 
 	__CFRunLoopDoBlocks(rl, rlm);
 
+        // Tanner: Sources0
     Boolean sourceHandledThisLoop = __CFRunLoopDoSources0(rl, rlm, stopAfterHandle);
     if (sourceHandledThisLoop) {
         __CFRunLoopDoBlocks(rl, rlm);
@@ -2789,6 +2793,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         if (MACH_PORT_NULL != dispatchPort && !didDispatchPortLastTime) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
             msg = (mach_msg_header_t *)msg_buffer;
+            // Tanner: DispatchQueue.main.async
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL, rl, rlm)) {
                 goto handle_msg;
             }
@@ -2806,6 +2811,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
         didDispatchPortLastTime = false;
 
+        // Tanner:  BeforeWaiting
 	if (!poll && (rlm->_observerMask & kCFRunLoopBeforeWaiting)) __CFRunLoopDoObservers(rl, rlm, kCFRunLoopBeforeWaiting);
 	__CFRunLoopSetSleeping(rl);
 	// do not do any user callouts after this point (after notifying of sleeping)
@@ -2826,7 +2832,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
     do {
         msg = (mach_msg_header_t *)msg_buffer;
-        
+            // Tanner: wait thread msg
         __CFRunLoopServiceMachPort(waitSet, &msg, sizeof(msg_buffer), &livePort, poll ? 0 : TIMEOUT_INFINITY, &voucherState, &voucherCopy, rl, rlm);
         
         if (modeQueuePort != MACH_PORT_NULL && livePort == modeQueuePort) {
@@ -2846,6 +2852,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
     } while (1);
 #else
     msg = (mach_msg_header_t *)msg_buffer;
+        // // Tanner: wait thread msg
     __CFRunLoopServiceMachPort(waitSet, &msg, sizeof(msg_buffer), &livePort, poll ? 0 : TIMEOUT_INFINITY, &voucherState, &voucherCopy, rl, rlm);
 #endif
         
@@ -2874,6 +2881,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
         // user callouts now OK again
 	__CFRunLoopUnsetSleeping(rl);
+        // Tanner: AfterWaiting
 	if (!poll && (rlm->_observerMask & kCFRunLoopAfterWaiting)) __CFRunLoopDoObservers(rl, rlm, kCFRunLoopAfterWaiting);
 
         handle_msg:;
@@ -2929,6 +2937,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             ResetEvent(rl->_wakeUpPort);
 #endif
         }
+        // Tanner: Timer
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
         else if (modeQueuePort != MACH_PORT_NULL && livePort == modeQueuePort) {
             CFRUNLOOP_WAKEUP_FOR_TIMER();
@@ -2951,6 +2960,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         }
 #endif
         
+        // Tanner: Dispatch
         /* --- DISPATCHES  --- */
         
 #if __HAS_DISPATCH__
@@ -2973,7 +2983,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             didDispatchPortLastTime = true;
         }
 #endif
-        
+        // Tanner: Sources1
         /* --- SOURCE1S  --- */
         
         else {
@@ -3060,6 +3070,7 @@ SInt32 CFRunLoopRunSpecific(CFRunLoopRef rl, CFStringRef modeName, CFTimeInterva
     rl->_currentMode = currentMode;
     int32_t result = kCFRunLoopRunFinished;
 
+    // Tanner: kCFRunLoopEntry
 	if (currentMode->_observerMask & kCFRunLoopEntry ) __CFRunLoopDoObservers(rl, currentMode, kCFRunLoopEntry);
         cf_trace(KDEBUG_EVENT_CFRL_RUN | DBG_FUNC_START, rl, currentMode, seconds, previousMode);
         result = __CFRunLoopRun(rl, currentMode, seconds, returnAfterSourceHandled, previousMode);

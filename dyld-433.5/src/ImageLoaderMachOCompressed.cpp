@@ -756,6 +756,7 @@ uintptr_t ImageLoaderMachOCompressed::resolve(const LinkContext& context, const 
 	return symbolAddress;
 }
 
+// Tanner: bind
 uintptr_t ImageLoaderMachOCompressed::bindAt(const LinkContext& context, uintptr_t addr, uint8_t type, const char* symbolName, 
 								uint8_t symbolFlags, intptr_t addend, long libraryOrdinal, const char* msg,
 								LastLookup* last, bool runResolver)

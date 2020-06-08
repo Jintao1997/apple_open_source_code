@@ -408,7 +408,7 @@ void ImageLoader::addDynamicInterposingTuples(const struct dyld_interpose_tuple 
 	}
 }
 
-// Tanner: 3. 链接加载依赖库
+// Tanner: Link 链接加载依赖库
 void ImageLoader::link(const LinkContext& context, bool forceLazysBound, bool preflightOnly, bool neverUnload, const RPathChain& loaderRPaths, const char* imagePath)
 {
 	//dyld::log("ImageLoader::link(%s) refCount=%d, neverUnload=%d\n", imagePath, fDlopenReferenceCount, fNeverUnload);
@@ -417,21 +417,26 @@ void ImageLoader::link(const LinkContext& context, bool forceLazysBound, bool pr
 	(*context.setErrorStrings)(0, NULL, NULL, NULL);
 
 	uint64_t t0 = mach_absolute_time();
+	
+	// Tanner: Link.1: load
 	this->recursiveLoadLibraries(context, preflightOnly, loaderRPaths, imagePath);
 	context.notifyBatch(dyld_image_state_dependents_mapped, preflightOnly);
 
 	// we only do the loading step for preflights
 	if ( preflightOnly )
 		return;
-		
+	
+	// Tanner: Link.2: update depths
 	uint64_t t1 = mach_absolute_time();
 	context.clearAllDepths();
 	this->recursiveUpdateDepth(context.imageCount());
 
+	// Tanner: Link.3: rebase
 	uint64_t t2 = mach_absolute_time();
  	this->recursiveRebase(context);
 	context.notifyBatch(dyld_image_state_rebased, false);
 	
+	// Tanner: Link.4: bind
 	uint64_t t3 = mach_absolute_time();
  	this->recursiveBind(context, forceLazysBound, neverUnload);
 
@@ -440,6 +445,7 @@ void ImageLoader::link(const LinkContext& context, bool forceLazysBound, bool pr
 		this->weakBind(context);
 	uint64_t t5 = mach_absolute_time();	
 
+	// Tanner: Link.5: dyld_image_state_bound (可以执行_dyld_register_func_for_add_image 注册过的函数, 不过目前没机会运行到自己写的注册代码)
 	context.notifyBatch(dyld_image_state_bound, false);
 	uint64_t t6 = mach_absolute_time();	
 
@@ -747,10 +753,10 @@ void ImageLoader::recursiveRebase(const LinkContext& context)
 					dependentImage->recursiveRebase(context);
 			}
 				
-			// rebase this image
+			// Tanner: rebase this image
 			doRebase(context);
 			
-			// notify
+			// Tanner: dyld_image_state_rebased
 			context.notifySingle(dyld_image_state_rebased, this, NULL);
 		}
 		catch (const char* msg) {
@@ -814,7 +820,8 @@ void ImageLoader::recursiveBind(const LinkContext& context, bool forceLazysBound
 			// mark as never-unload if requested
 			if ( neverUnload )
 				this->setNeverUnload();
-				
+			
+			// Tanner: 通知该image bind完了
 			context.notifySingle(dyld_image_state_bound, this, NULL);
 		}
 		catch (const char* msg) {
@@ -1046,10 +1053,10 @@ void ImageLoader::recursiveInitialization(const LinkContext& context, mach_port_
 			uint64_t t1 = mach_absolute_time();
 			fState = dyld_image_state_dependents_initialized;
 			oldState = fState;
-			// Tanner: 通知objc , objc call load_methods
+			// Tanner: 通知objc, 调用该image的load方法
 			context.notifySingle(dyld_image_state_dependents_initialized, this, &timingInfo);
 			
-			// Tanner: 调用image的构造函数
+			// Tanner: 调用该image的构造函数
 			bool hasInitializers = this->doInitialization(context);
 
 			// let anyone know we finished initializing this image
