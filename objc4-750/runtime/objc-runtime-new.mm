@@ -4857,6 +4857,7 @@ IMP _class_lookupMethodAndLoadCache3(id obj, SEL sel, Class cls)
 *   must be converted to _objc_msgForward or _objc_msgForward_stret.
 *   If you don't want forwarding at all, use lookUpImpOrNil() instead.
 **********************************************************************/
+// Tanner:
 IMP lookUpImpOrForward(Class cls, SEL sel, id inst, 
                        bool initialize, bool cache, bool resolver)
 {

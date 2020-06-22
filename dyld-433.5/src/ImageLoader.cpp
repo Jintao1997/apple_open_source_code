@@ -440,12 +440,13 @@ void ImageLoader::link(const LinkContext& context, bool forceLazysBound, bool pr
 	uint64_t t3 = mach_absolute_time();
  	this->recursiveBind(context, forceLazysBound, neverUnload);
 
+	// Tanner: Link.5: weakBind
 	uint64_t t4 = mach_absolute_time();
 	if ( !context.linkingMainExecutable )
 		this->weakBind(context);
 	uint64_t t5 = mach_absolute_time();	
 
-	// Tanner: Link.5: dyld_image_state_bound (可以执行_dyld_register_func_for_add_image 注册过的函数, 不过目前没机会运行到自己写的注册代码)
+	// Tanner: Link.6: dyld_image_state_bound (可以执行_dyld_register_func_for_add_image 注册过的函数, 不过目前没机会运行到自己写的注册代码)
 	context.notifyBatch(dyld_image_state_bound, false);
 	uint64_t t6 = mach_absolute_time();	
 

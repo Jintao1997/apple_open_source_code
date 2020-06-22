@@ -94,7 +94,7 @@ ImageLoaderMachOCompressed* ImageLoaderMachOCompressed::instantiateMainExecutabl
 	return image;
 }
 
-// Tanner: create image by mapping in a mach-o file
+// Tanner: mmap: create image by mapping in a mach-o file
 ImageLoaderMachOCompressed* ImageLoaderMachOCompressed::instantiateFromFile(const char* path, int fd, const uint8_t* fileData, size_t lenFileData,
 															uint64_t offsetInFat, uint64_t lenInFat, const struct stat& info, 
 															unsigned int segCount, unsigned int libCount, 

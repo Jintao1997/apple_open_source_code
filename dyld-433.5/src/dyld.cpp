@@ -6043,7 +6043,7 @@ reloadAllImages:
 		gLinkContext.linkingMainExecutable = false;
 		
 		// <rdar://problem/12186933> do weak binding only after all inserted images linked
-		// Tanner: 4. weakBind
+		// Tanner: 4. main weakBind
 		sMainExecutable->weakBind(gLinkContext);
 
 	#if DYLD_SHARED_CACHE_SUPPORT
