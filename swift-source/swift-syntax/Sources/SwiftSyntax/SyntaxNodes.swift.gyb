@@ -1,0 +1,308 @@
+%{
+  # -*- mode: Swift -*-
+  from gyb_syntax_support import *
+  from gyb_syntax_support.Traits import TRAITS
+  NODE_MAP = create_node_map()
+  # Ignore the following admonition it applies to the resulting .swift file only
+}%
+//// Automatically Generated From SyntaxNodes.swift.gyb.
+//// Do Not Edit Directly!
+//===------------ SyntaxNodes.swift - Syntax Node definitions -------------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+import _InternalSwiftSyntaxParser
+
+%{
+"""
+Each Syntax node implements the protocol of a more generic node. For example,
+StructDeclSyntax implements DeclSyntax and can be used in contexts
+where DeclSyntax is expected.
+
+Each node will have:
+- An accessor for each child that will lazily instantiate it.
+- A `withX(_ x: XSyntax)` method for each child that will return a new Syntax
+  node with the existing X child replaced with the passed-in version. This is a
+  way to incrementally transform nodes in the tree.
+- An `addX(_ x: XSyntax)` method for children that are collections. This will
+  append the provided node to the collection and return a new node with that
+  collection replaced.
+"""
+}%
+
+/// A wrapper around a raw Syntax layout.
+public struct UnknownSyntax: _SyntaxBase, Hashable {
+  let data: SyntaxData
+
+  /// Creates an `UnknownSyntax` node from the provided root and data.
+  internal init(_ data: SyntaxData) {
+    self.data = data
+  }
+
+  /// Determines if two `UnknownSyntax` nodes are equal to each other.
+  public static func ==(lhs: UnknownSyntax, rhs: UnknownSyntax) -> Bool {
+    return lhs.data.nodeId == rhs.data.nodeId
+  }
+
+  /// Feed the essential parts of this node to the supplied hasher.
+  public func hash(into hasher: inout Hasher) {
+    return data.nodeId.hash(into: &hasher)
+  }
+}
+
+extension UnknownSyntax: CustomReflectable {
+  public var customMirror: Mirror {
+    return Mirror(self, children: [:])
+  }
+}
+
+% for node in SYNTAX_NODES:
+%   base_type = node.base_type
+%   if node.is_base():
+%     for line in dedented_lines(node.description):
+/// ${line}
+%     end
+public protocol ${node.name}: Syntax {}
+
+%   elif node.collection_element:
+%     pass
+%   else:
+
+%     for line in dedented_lines(node.description):
+/// ${line}
+%     end
+public struct ${node.name}: ${base_type}, _SyntaxBase, Hashable {
+%     if node.children:
+  enum Cursor: Int {
+%       for child in node.children:
+    case ${child.swift_name}
+%       end
+  }
+%     end
+
+  let data: SyntaxData
+
+  /// Creates a `${node.name}` node from the provided root and data.
+  internal init(_ data: SyntaxData) {
+    self.data = data
+  }
+
+%     for child in node.children:
+%       child_node = NODE_MAP.get(child.syntax_kind)
+%       ret_type = child.type_name
+%       cast_symbol = 'as!'
+%       if child.is_optional:
+%         ret_type += '?'
+%         cast_symbol = 'as?'
+%       end
+%       for line in dedented_lines(child.description):
+  /// ${line}
+%       end
+  public var ${child.swift_name}: ${ret_type} {
+  get {
+    let child = data.child(at: Cursor.${child.swift_name}, parent: self)
+%       if child.is_optional:
+    if child == nil { return nil }
+%       end
+%       child_is_constructable = child.type_name != 'Syntax' and \
+%         not (child_node and child_node.is_base())
+%       if child_is_constructable:
+    return ${child.type_name}(child!)
+%       else:
+%         cast = '' if child.type_name == 'Syntax' \
+%                   else '%s %s' % (cast_symbol, child.type_name)
+    return makeSyntax(child!) ${cast}
+%       end
+  }
+  set(value) {
+    self = with${child.name}(value)
+  }
+  }
+%       if child_node and child_node.is_syntax_collection():
+%         child_elt = child.collection_element_name
+%         child_elt_type = child_node.collection_element_type
+%         if not child_elt:
+%           raise Exception("'collection_element_name' should be set for '%s' of '%s'" % (child.name, node.name))
+%         end
+
+  /// Adds the provided `${child_elt}` to the node's `${child.swift_name}`
+  /// collection.
+  /// - param element: The new `${child_elt}` to add to the node's
+  ///                  `${child.swift_name}` collection.
+  /// - returns: A copy of the receiver with the provided `${child_elt}`
+  ///            appended to its `${child.swift_name}` collection.
+  public func add${child_elt}(_ element: ${child_elt_type}) -> ${node.name} {
+    var collection: RawSyntax
+    if let col = raw[Cursor.${child.swift_name}] {
+      collection = col.appending(element.raw)
+    } else {
+      collection = RawSyntax.create(kind: SyntaxKind.${child_node.swift_syntax_kind},
+        layout: [element.raw], length: element.raw.totalLength, presence: .present)
+    }
+    let newData = data.replacingChild(collection,
+                                      at: Cursor.${child.swift_name})
+    return ${node.name}(newData)
+  }
+%       end
+
+  /// Returns a copy of the receiver with its `${child.swift_name}` replaced.
+  /// - param newChild: The new `${child.swift_name}` to replace the node's
+  ///                   current `${child.swift_name}`, if present.
+  public func with${child.name}(
+    _ newChild: ${child.type_name}?) -> ${node.name} {
+%       if child.is_optional:
+    let raw = newChild?.raw
+%       else:
+    let raw = newChild?.raw ?? ${make_missing_swift_child(child)}
+%       end
+    let newData = data.replacingChild(raw, at: Cursor.${child.swift_name})
+    return ${node.name}(newData)
+  }
+%     end
+
+  /// Returns a new `${node.name}` with its leading trivia replaced
+  /// by the provided trivia.
+  public func withLeadingTrivia(_ leadingTrivia: Trivia) -> ${node.name} {
+    return ${node.name}(data.withLeadingTrivia(leadingTrivia))
+  }
+
+  /// Returns a new `${node.name}` with its trailing trivia replaced
+  /// by the provided trivia.
+  public func withTrailingTrivia(_ trailingTrivia: Trivia) -> ${node.name} {
+    return ${node.name}(data.withTrailingTrivia(trailingTrivia))
+  }
+
+  /// Returns a new `${node.name}` with its leading trivia removed.
+  public func withoutLeadingTrivia() -> ${node.name} {
+    return withLeadingTrivia([])
+  }
+
+  /// Returns a new `${node.name}` with its trailing trivia removed.
+  public func withoutTrailingTrivia() -> ${node.name} {
+    return withTrailingTrivia([])
+  }
+
+  /// Returns a new `${node.name}` with all trivia removed.
+  public func withoutTrivia() -> ${node.name} {
+    return withoutLeadingTrivia().withoutTrailingTrivia()
+  }
+
+  /// The leading trivia (spaces, newlines, etc.) associated with this `${node.name}`.
+  public var leadingTrivia: Trivia? {
+    get {
+      return raw.formLeadingTrivia()
+    }
+    set {
+      self = withLeadingTrivia(newValue ?? [])
+    }
+  }
+
+  /// The trailing trivia (spaces, newlines, etc.) associated with this `${node.name}`.
+  public var trailingTrivia: Trivia? {
+    get {
+      return raw.formTrailingTrivia()
+    }
+    set {
+      self = withTrailingTrivia(newValue ?? [])
+    }
+  }
+
+  /// Determines if two `${node.name}` nodes are equal to each other.
+  public static func ==(lhs: ${node.name}, rhs: ${node.name}) -> Bool {
+    return lhs.data.nodeId == rhs.data.nodeId
+  }
+
+  /// Feed the essential parts of this node to the supplied hasher.
+  public func hash(into hasher: inout Hasher) {
+    return data.nodeId.hash(into: &hasher)
+  }
+}
+%   end
+% end
+
+% for node in SYNTAX_NODES:
+%   if not node.is_base() and not node.is_syntax_collection():
+extension ${node.name}: CustomReflectable {
+  public var customMirror: Mirror {
+    return Mirror(self, children: [
+%     for child in node.children:
+      "${child.swift_name}": ${child.swift_name} as Any,
+%     end
+    ])
+  }
+}
+%   end
+% end
+
+% for trait in TRAITS:
+public protocol ${trait.trait_name}Syntax: Syntax {
+% for child in trait.children:
+%   ret_type = child.type_name
+%   if child.is_optional:
+%       ret_type += '?'
+%   end
+  var ${child.swift_name}: ${ret_type} { get }
+  func with${child.name}(_ newChild: ${child.type_name}?) -> Self
+% end
+}
+% end
+
+% for node in SYNTAX_NODES:
+%   base_type = node.base_type
+%   if node.is_base():
+%     pass
+%   elif node.collection_element:
+%     pass
+%   elif node.traits:
+%     traits_list = ", ".join(trait + 'Syntax' for trait in node.traits)
+extension ${node.name}: ${traits_list} {}
+%   end
+% end
+
+extension SyntaxNode {
+  public var isUnknown: Bool { return raw.kind.isUnknown }
+  public var asUnknown: UnknownSyntax? {
+    guard isUnknown else { return nil }
+    return UnknownSyntax(asSyntaxData)
+  }
+% for node in SYNTAX_NODES:
+%   if not node.is_base():
+
+  public var is${node.syntax_kind}: Bool { return raw.kind == .${node.swift_syntax_kind} }
+  public var as${node.syntax_kind}: ${node.name}? {
+    guard is${node.syntax_kind} else { return nil }
+    return ${node.name}(asSyntaxData)
+  }
+%   end
+% end
+}
+
+/// MARK: Convenience methods
+
+extension StructDeclSyntax {
+  /// Creates a new StructDeclSyntax with the provided name as its identifier.
+  /// - param name: The new struct's name.
+  /// - returns: A new StructDeclSyntax with the same fields as the receiver,
+  ///            but with the provided identifier.
+  func withIdentifier(_ name: String) -> StructDeclSyntax {
+    let newToken = SyntaxFactory.makeIdentifier(name,
+      leadingTrivia: identifier.leadingTrivia,
+      trailingTrivia: identifier.trailingTrivia)
+    return withIdentifier(newToken)
+  }
+}
+
+extension SyntaxParser {
+  static func verifyNodeDeclarationHash() -> Bool {
+    return String(cString: swiftparse_syntax_structure_versioning_identifier()!) ==
+      "${calculate_node_hash()}"
+  }
+}

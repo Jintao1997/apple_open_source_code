@@ -1,0 +1,284 @@
+%{
+  from gyb_syntax_support import *
+  NODE_MAP = create_node_map()
+  # -*- mode: Swift -*-
+  # Ignore the following admonition it applies to the resulting .swift file only
+}%
+//// Automatically Generated From SyntaxCollections.swift.gyb.
+//// Do Not Edit Directly!
+//===------------ SyntaxCollections.swift.gyb - Syntax Collection ---------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+public protocol SyntaxCollection: Syntax, Sequence {
+  /// The number of elements, `present` or `missing`, in this collection.
+  var count: Int { get }
+}
+
+% for node in SYNTAX_NODES:
+%   if node.collection_element:
+%     element_node = NODE_MAP.get(node.collection_element)
+
+/// `${node.name}` represents a collection of one or more
+/// `${node.collection_element_type}` nodes. ${node.name} behaves
+/// as a regular Swift collection, and has accessors that return new
+/// versions of the collection with different children.
+public struct ${node.name}: _SyntaxBase, Hashable, SyntaxCollection {
+  let data: SyntaxData
+
+  /// Creates a Syntax node from the provided root and data.
+  internal init(_ data: SyntaxData) {
+    self.data = data
+  }
+
+  /// The number of elements, `present` or `missing`, in this collection.
+  public var count: Int { return raw.numberOfChildren }
+
+  /// Creates a new `${node.name}` by replacing the underlying layout with
+  /// a different set of raw syntax nodes.
+  ///
+  /// - Parameter layout: The new list of raw syntax nodes underlying this
+  ///                     collection.
+  /// - Returns: A new `${node.name}` with the new layout underlying it.
+  internal func replacingLayout(
+    _ layout: [RawSyntax?]) -> ${node.name} {
+    let newRaw = data.raw.replacingLayout(layout)
+    let newData = data.replacingSelf(newRaw)
+    return ${node.name}(newData)
+  }
+
+  /// Creates a new `${node.name}` by appending the provided syntax element
+  /// to the children.
+  ///
+  /// - Parameter syntax: The element to append.
+  /// - Returns: A new `${node.name}` with that element appended to the end.
+  public func appending(
+    _ syntax: ${node.collection_element_type}) -> ${node.name} {
+    var newLayout = data.raw.formLayoutArray()
+    newLayout.append(syntax.raw)
+    return replacingLayout(newLayout)
+  }
+
+  /// Creates a new `${node.name}` by prepending the provided syntax element
+  /// to the children.
+  ///
+  /// - Parameter syntax: The element to prepend.
+  /// - Returns: A new `${node.name}` with that element prepended to the
+  ///            beginning.
+  public func prepending(
+    _ syntax: ${node.collection_element_type}) -> ${node.name} {
+    return inserting(syntax, at: 0)
+  }
+
+  /// Creates a new `${node.name}` by inserting the provided syntax element
+  /// at the provided index in the children.
+  ///
+  /// - Parameters:
+  ///   - syntax: The element to insert.
+  ///   - index: The index at which to insert the element in the collection.
+  ///
+  /// - Returns: A new `${node.name}` with that element appended to the end.
+  public func inserting(_ syntax: ${node.collection_element_type},
+                        at index: Int) -> ${node.name} {
+    var newLayout = data.raw.formLayoutArray()
+    /// Make sure the index is a valid insertion index (0 to 1 past the end)
+    precondition((newLayout.startIndex...newLayout.endIndex).contains(index),
+                 "inserting node at invalid index \(index)")
+    newLayout.insert(syntax.raw, at: index)
+    return replacingLayout(newLayout)
+  }
+
+  /// Creates a new `${node.name}` by replacing the syntax element
+  /// at the provided index.
+  ///
+  /// - Parameters:
+  ///   - index: The index at which to replace the element in the collection.
+  ///   - syntax: The element to replace with.
+  ///
+  /// - Returns: A new `${node.name}` with the new element at the provided index.
+  public func replacing(childAt index: Int,
+                        with syntax: ${node.collection_element_type}) -> ${node.name} {
+    var newLayout = data.raw.formLayoutArray()
+    /// Make sure the index is a valid index for replacing
+    precondition((newLayout.startIndex..<newLayout.endIndex).contains(index),
+                 "replacing node at invalid index \(index)")
+    newLayout[index] = syntax.raw
+    return replacingLayout(newLayout)
+  }
+
+  /// Creates a new `${node.name}` by removing the syntax element at the
+  /// provided index.
+  ///
+  /// - Parameter index: The index of the element to remove from the collection.
+  /// - Returns: A new `${node.name}` with the element at the provided index
+  ///            removed.
+  public func removing(childAt index: Int) -> ${node.name} {
+    var newLayout = data.raw.formLayoutArray()
+    newLayout.remove(at: index)
+    return replacingLayout(newLayout)
+  }
+
+  /// Creates a new `${node.name}` by removing the first element.
+  ///
+  /// - Returns: A new `${node.name}` with the first element removed.
+  public func removingFirst() -> ${node.name} {
+    var newLayout = data.raw.formLayoutArray()
+    newLayout.removeFirst()
+    return replacingLayout(newLayout)
+  }
+
+  /// Creates a new `${node.name}` by removing the last element.
+  ///
+  /// - Returns: A new `${node.name}` with the last element removed.
+  public func removingLast() -> ${node.name} {
+    var newLayout = data.raw.formLayoutArray()
+    newLayout.removeLast()
+    return replacingLayout(newLayout)
+  }
+
+  /// Returns a new `${node.name}` with its leading trivia replaced
+  /// by the provided trivia.
+  public func withLeadingTrivia(_ leadingTrivia: Trivia) -> ${node.name} {
+    return ${node.name}(data.withLeadingTrivia(leadingTrivia))
+  }
+
+  /// Returns a new `${node.name}` with its trailing trivia replaced
+  /// by the provided trivia.
+  public func withTrailingTrivia(_ trailingTrivia: Trivia) -> ${node.name} {
+    return ${node.name}(data.withTrailingTrivia(trailingTrivia))
+  }
+
+  /// Returns a new `${node.name}` with its leading trivia removed.
+  public func withoutLeadingTrivia() -> ${node.name} {
+    return withLeadingTrivia([])
+  }
+
+  /// Returns a new `${node.name}` with its trailing trivia removed.
+  public func withoutTrailingTrivia() -> ${node.name} {
+    return withTrailingTrivia([])
+  }
+
+  /// Returns a new `${node.name}` with all trivia removed.
+  public func withoutTrivia() -> ${node.name} {
+    return withoutLeadingTrivia().withoutTrailingTrivia()
+  }
+
+  /// The leading trivia (spaces, newlines, etc.) associated with this `${node.name}`.
+  public var leadingTrivia: Trivia? {
+    get {
+      return raw.formLeadingTrivia()
+    }
+    set {
+      self = withLeadingTrivia(newValue ?? [])
+    }
+  }
+
+  /// The trailing trivia (spaces, newlines, etc.) associated with this `${node.name}`.
+  public var trailingTrivia: Trivia? {
+    get {
+      return raw.formTrailingTrivia()
+    }
+    set {
+      self = withTrailingTrivia(newValue ?? [])
+    }
+  }
+
+  /// Determines if two `${node.name}` nodes are equal to each other.
+  public static func ==(lhs: ${node.name}, rhs: ${node.name}) -> Bool {
+    return lhs.data.nodeId == rhs.data.nodeId
+  }
+
+  /// Feed the essential parts of this node to the supplied hasher.
+  public func hash(into hasher: inout Hasher) {
+    return data.nodeId.hash(into: &hasher)
+  }
+}
+
+/// Conformance for `${node.name}`` to the Sequence protocol.
+extension ${node.name}: Sequence {
+  fileprivate static func nextElement<Iter>(
+    _ iterator: inout Iter, parent: _SyntaxBase
+  ) -> ${node.collection_element_type}? where Iter: AbsoluteRawSyntaxIteratorProtocol {
+    guard let absoluteRaw = iterator.next() else { return nil }
+    let data = SyntaxData(absoluteRaw, parent: parent)
+%   is_constructable = node.collection_element_type != 'Syntax' and \
+%       not (element_node and element_node.is_base())
+%   if is_constructable:
+    return ${node.collection_element_type}(data)
+%   else:
+%     cast = '' if node.collection_element_type == 'Syntax' \
+%         else 'as! ' + node.collection_element_type
+    return (makeSyntax(data) ${cast})
+%   end
+  }
+
+  public struct Iterator: IteratorProtocol {
+    private let parent: _SyntaxBase
+    private var iterator: PresentRawSyntaxChildren.Iterator
+
+    public init(collection node: ${node.name}) {
+      self.iterator = .init(parent: node.data.absoluteRaw)
+      self.parent = node
+    }
+
+    public mutating func next() -> ${node.collection_element_type}? {
+      return ${node.name}.nextElement(&iterator, parent: parent)
+    }
+  }
+
+  /// Returns an iterator over the elements of this syntax collection.
+  public func makeIterator() -> Iterator {
+    return Iterator(collection: self)
+  }
+
+  public func reversed() -> Reversed {
+    return Reversed(collection: self)
+  }
+
+  public struct Reversed: Sequence {
+    public struct Iterator: IteratorProtocol {
+      private let parent: _SyntaxBase
+      private var iterator: ReversedPresentRawSyntaxChildren.Iterator
+
+      public init(collection node: ${node.name}) {
+        self.iterator = .init(parent: node.data.absoluteRaw)
+        self.parent = node
+      }
+
+      public mutating func next() -> ${node.collection_element_type}? {
+        return ${node.name}.nextElement(&iterator, parent: parent)
+      }
+    }
+
+    let collection: ${node.name}
+
+    /// Returns an iterator over the elements of this syntax collection.
+    public func makeIterator() -> Iterator {
+      return Iterator(collection: collection)
+    }
+
+    public func reversed() -> ${node.name} {
+      return collection
+    }
+  }
+}
+%   end
+% end
+
+% for node in SYNTAX_NODES:
+%   if node.is_syntax_collection():
+extension ${node.name}: CustomReflectable {
+  public var customMirror: Mirror {
+    return Mirror(self, unlabeledChildren: self.map{ $0 })
+  }
+}
+%   end
+% end

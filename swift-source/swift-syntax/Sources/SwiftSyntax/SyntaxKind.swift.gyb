@@ -1,0 +1,83 @@
+%{
+  from gyb_syntax_support import *
+  from gyb_syntax_support.kinds import SYNTAX_BASE_KINDS
+  grouped_nodes = { kind: [] for kind in SYNTAX_BASE_KINDS }
+  for node in SYNTAX_NODES:
+    grouped_nodes[node.base_kind].append(node)
+  # -*- mode: Swift -*-
+  # Ignore the following admonition; it applies to the resulting .swift file only
+}%
+//// Automatically Generated From SyntaxKind.swift.gyb.
+//// Do Not Edit Directly!
+//===--------------- SyntaxKind.swift - Syntax Kind definitions -----------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+/// Enumerates the known kinds of Syntax represented in the Syntax tree.
+internal enum SyntaxKind: CSyntaxKind {
+  case token = 0
+  case unknown = 1
+% for node in SYNTAX_NODES:
+  case ${node.swift_syntax_kind} = ${SYNTAX_NODE_SERIALIZATION_CODES[node.syntax_kind]}
+% end
+
+% for name, nodes in grouped_nodes.items():
+%   if name not in ["Syntax"]:
+  /// Whether the underlying kind is a sub-kind of ${name}Syntax.
+  public var is${name}: Bool {
+    switch self {
+%     for node in nodes:
+    case .${node.swift_syntax_kind}: return true
+%     end
+    default: return false
+    }
+  }
+%   end
+% end
+
+  public var isUnknown: Bool {
+    switch self {
+% for name, nodes in grouped_nodes.items():
+%   if name not in ["Syntax", "SyntaxCollection"]:
+    case .unknown${name}: return true
+%   end
+% end
+    case .unknown: return true
+    default: return false
+    }
+  }
+}
+
+extension SyntaxKind {
+  static func fromRawValue(_ rawValue: CSyntaxKind) -> SyntaxKind {
+    return SyntaxKind(rawValue: rawValue)!
+  }
+}
+
+/// Creates a Syntax node from the provided SyntaxData using the appropriate
+/// Syntax type, as specified by its kind.
+/// - Parameters:
+///   - root: The root of this tree, or `nil` if the new node is the root.
+///   - data: The data for this new node.
+internal func makeSyntax(_ data: SyntaxData) -> _SyntaxBase {
+  switch data.raw.kind {
+  case .token: return TokenSyntax(data)
+  case .unknown: return UnknownSyntax(data)
+% for node in SYNTAX_NODES:
+  case .${node.swift_syntax_kind}:
+%   if node.is_base():
+    return Unknown${node.name}(data)
+%   else:
+    return ${node.name}(data)
+%   end
+% end
+  }
+}
