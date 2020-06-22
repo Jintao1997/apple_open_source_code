@@ -10,3 +10,10 @@ Collections of Apple Open Source Code
 - libpthread
 - CFCore
 - CFNetwork
+
+> swift-source
+
+* lldb
+* swift-corelibs-foundation
+* swift-corelibs-libdispatch
+* swift-syntax
