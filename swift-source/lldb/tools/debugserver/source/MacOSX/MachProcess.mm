@@ -1661,6 +1661,7 @@ void MachProcess::PrivateResume() {
   m_task.Resume();
 }
 
+// Tanner: 创建断点
 DNBBreakpoint *MachProcess::CreateBreakpoint(nub_addr_t addr, nub_size_t length,
                                              bool hardware) {
   DNBLogThreadedIf(LOG_BREAKPOINTS, "MachProcess::CreateBreakpoint ( addr = "
@@ -1957,6 +1958,7 @@ bool MachProcess::EnableBreakpoint(nub_addr_t addr) {
         // Save the original opcode by reading it
         if (m_task.ReadMemory(addr, break_op_size, bp->SavedOpcodeBytes()) ==
             break_op_size) {
+            // Tanner: 断点写入
           // Write a software breakpoint in place of the original opcode
           if (m_task.WriteMemory(addr, break_op_size, break_op) ==
               break_op_size) {

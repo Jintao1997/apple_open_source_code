@@ -47,6 +47,9 @@
 // (SS bit in the MDSCR_EL1 register)
 #define SS_ENABLE ((uint32_t)(1u))
 
+// Tanner: 中断码
+// arm 软中断码
+// x86 中断码: 0xCC
 static const uint8_t g_arm64_breakpoint_opcode[] = {
     0x00, 0x00, 0x20, 0xD4}; // "brk #0", 0xd4200000 in BE byte order
 static const uint8_t g_arm_breakpoint_opcode[] = {

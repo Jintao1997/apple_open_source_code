@@ -1465,6 +1465,7 @@ int main(int argc, char *argv[]) {
       } else
 #endif
           if (port != INT32_MAX) {
+              // Tanner: 连接debugserver
         if (!ConnectRemote(remote, host.c_str(), port, reverse_connect,
                            named_pipe_path.c_str(), unix_socket_name.c_str()))
           mode = eRNBRunLoopModeExit;

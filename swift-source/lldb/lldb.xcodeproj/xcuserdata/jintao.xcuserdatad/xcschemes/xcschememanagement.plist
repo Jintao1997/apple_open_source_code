@@ -17,7 +17,7 @@
 		<key>PrebuiltSwiftDebugBuild.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>21</integer>
+			<integer>26</integer>
 		</dict>
 		<key>Run Testsuite.xcscheme_^#shared#^_</key>
 		<dict>
@@ -37,27 +37,27 @@
 		<key>desktop_no_xpc.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>11</integer>
+			<integer>23</integer>
 		</dict>
 		<key>install-headers-mini.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>19</integer>
+			<integer>17</integer>
 		</dict>
 		<key>install-headers.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>18</integer>
+			<integer>19</integer>
 		</dict>
 		<key>ios-mini.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>14</integer>
+			<integer>27</integer>
 		</dict>
 		<key>ios.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>12</integer>
+			<integer>24</integer>
 		</dict>
 		<key>launcherRootXPCService.xcscheme_^#shared#^_</key>
 		<dict>
@@ -72,22 +72,22 @@
 		<key>lldb-argdumper.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>23</integer>
+			<integer>32</integer>
 		</dict>
 		<key>lldb-core.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>16</integer>
+			<integer>28</integer>
 		</dict>
 		<key>lldb-docs.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>24</integer>
+			<integer>15</integer>
 		</dict>
 		<key>lldb-gtest-build.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>15</integer>
+			<integer>21</integer>
 		</dict>
 		<key>lldb-gtest.xcscheme_^#shared#^_</key>
 		<dict>
@@ -97,7 +97,7 @@
 		<key>lldb-mi.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>22</integer>
+			<integer>13</integer>
 		</dict>
 		<key>lldb-python-test-suite.xcscheme_^#shared#^_</key>
 		<dict>
@@ -107,7 +107,7 @@
 		<key>lldb-server.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>17</integer>
+			<integer>20</integer>
 		</dict>
 		<key>lldb-tool.xcscheme_^#shared#^_</key>
 		<dict>
@@ -117,17 +117,17 @@
 		<key>lldb-vscode.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>25</integer>
+			<integer>12</integer>
 		</dict>
 		<key>repl_swift.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>20</integer>
+			<integer>30</integer>
 		</dict>
 		<key>toolchain.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>13</integer>
+			<integer>29</integer>
 		</dict>
 	</dict>
 </dict>
